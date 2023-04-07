@@ -61,7 +61,8 @@ String getEEPROMString(int offset);
 
 
 // Global variable to store the rounded Bitcoin price
-int roundedPrice = 0;
+int roundedBtcPrice = 0;
+int num = 0;
 
 void setup() {
   Serial.begin(BAUD_RATE);
@@ -150,32 +151,32 @@ void getBtcPrice() {
   int httpCode = http.GET();
   delay(100);
   // Parse JSON response
-  int price = 0;
+  int btcPrice = 0;
   if (httpCode > 0) {
     String response = http.getString();
     DynamicJsonDocument doc(1024);
     deserializeJson(doc, response);
     JsonObject bitcoin = doc["bitcoin"].as<JsonObject>();
-    price = bitcoin["usd"].as<float>();
+    btcPrice = bitcoin["usd"].as<float>();
   }
   http.end();
 
   // Round price to nearest thousand
-  roundedPrice = round(price / 1.0) * 1;
-  Serial.println(roundedPrice);    
+  roundedBtcPrice = round(btcPrice / 1.0) * 1;
+  Serial.println(roundedBtcPrice);    
 
 
 }
 
 
 void displayNumber() {
-  Serial.println(roundedPrice);  
-  int numDigits = floor(log10(abs(roundedPrice))) + 1; // count number of digits
+  Serial.println(num);  
+  int numDigits = floor(log10(abs(num))) + 1; // count number of digits
   if (numDigits > 7) {
     numDigits = 7; // limit to 7 digits
   }
   for (int digit = 0; digit < numDigits; digit++) {
-    int n = (roundedPrice / (int)pow(10, digit)) % 10;
+    int n = (num / (int)pow(10, digit)) % 10;
     for (int i = 0; i < 7; i++) {
       if (digitSegments[n][i]) {
         leds[segments[digit][i] - 1] = CRGB::Orange;
@@ -217,12 +218,13 @@ String getEEPROMString(int offset) {
 void loop() {
   server.handleClient();
   if (WiFi.status() == WL_CONNECTED)  {  
-    getBtcPrice(); // Call the function to get the Bitcoin price    
-    displayNumber();  
+    getBtcPrice(); // Call the function to get the Bitcoin price
+    num = roundedBtcPrice;       
+    displayNumber();      
     FastLED.show();
-    delay(100);
-    displayNumber();  
-    FastLED.show();    
+    delay(200);
+    displayNumber();      
+    FastLED.show(); 
     delay(requestInterval);    
   }
 }
