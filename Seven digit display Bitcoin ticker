@@ -59,11 +59,9 @@ void handleConnect();
 void setEEPROMString(int offset, String data);
 String getEEPROMString(int offset);
 
-// CoinDesk API endpoint
-const char* btc_api_url = "https://api.coindesk.com/v1/bpi/currentprice.json";
 
 // Global variable to store the rounded Bitcoin price
-int roundedBitcoinPrice = 0;
+int roundedPrice = 0;
 
 void setup() {
   Serial.begin(BAUD_RATE);
@@ -142,43 +140,56 @@ void handleConnect() {
   server.send(200, "text/html", html);
 }
 
+
 void getBtcPrice() {
-  // Make a HTTP request to the CoinDesk API
+  // Make HTTP request to CoinGecko API
+  WiFiClientSecure client;
+  client.setInsecure();
   HTTPClient http;
-  http.begin(btc_api_url);
+  http.begin(client, "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd");
   int httpCode = http.GET();
-
-  if (httpCode == HTTP_CODE_OK) {
-    // Parse the JSON response
-    String payload = http.getString();
+  delay(100);
+  // Parse JSON response
+  int price = 0;
+  if (httpCode > 0) {
+    String response = http.getString();
     DynamicJsonDocument doc(1024);
-    deserializeJson(doc, payload);
-
-    // Get the Bitcoin price in USD
-    float bitcoinPrice = doc["bpi"]["USD"]["rate_float"];
-
-    // Round the Bitcoin price to the nearest whole dollar
-    roundedBitcoinPrice = round(bitcoinPrice);
-  } else {
-    Serial.println("HTTP request failed");
+    deserializeJson(doc, response);
+    JsonObject bitcoin = doc["bitcoin"].as<JsonObject>();
+    price = bitcoin["usd"].as<float>();
   }
-
   http.end();
+
+  // Round price to nearest thousand
+  roundedPrice = round(price / 1.0) * 1;
+  Serial.println(roundedPrice);    
+
+
 }
 
+
 void displayNumber() {
-  int num = roundedBitcoinPrice + 1;
-  for (int digit = 0; digit < 7; digit++) {
-    int n = (num / (int)pow(10, digit)) % 10;
+  Serial.println(roundedPrice);  
+  int numDigits = floor(log10(abs(roundedPrice))) + 1; // count number of digits
+  if (numDigits > 7) {
+    numDigits = 7; // limit to 7 digits
+  }
+  for (int digit = 0; digit < numDigits; digit++) {
+    int n = (roundedPrice / (int)pow(10, digit)) % 10;
     for (int i = 0; i < 7; i++) {
       if (digitSegments[n][i]) {
-        leds[segments[digit][i] - 1] = CRGB::Blue;
+        leds[segments[digit][i] - 1] = CRGB::Orange;
       } else {
         leds[segments[digit][i] - 1] = CRGB::Black;
       }
     }
   }
-
+  // turn off extra digit segments
+  for (int i = numDigits; i < 7; i++) {
+    for (int j = 0; j < 7; j++) {
+      leds[segments[i][j] - 1] = CRGB::Black;
+    }
+  }
 }
 
 void setEEPROMString(int offset, String data) {
@@ -206,9 +217,12 @@ String getEEPROMString(int offset) {
 void loop() {
   server.handleClient();
   if (WiFi.status() == WL_CONNECTED)  {  
-    getBtcPrice(); // Call the function to get the Bitcoin price
-    displayNumber();
+    getBtcPrice(); // Call the function to get the Bitcoin price    
+    displayNumber();  
     FastLED.show();
+    delay(100);
+    displayNumber();  
+    FastLED.show();    
     delay(requestInterval);    
   }
 }
