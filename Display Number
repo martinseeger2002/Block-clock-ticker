@@ -36,24 +36,30 @@ void setup() {
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
 }
 
-void loop() {
+void loop(){
+  displayNumber();
+  FastLED.show();
+  delay(1000);
+}
+
+void displayd(){ 
+  for (int i = 0; i < 6; i++) {
+    leds[decimalPoints[i] - 1] = CRGB::Black; // turn on decimal point
+  }
+}
+
+void displayNumber() {
   int num = 8675309; // the number to display
 
   for (int digit = 0; digit < 7; digit++) {
     int n = (num / (int)pow(10, digit)) % 10;
     for (int i = 0; i < 7; i++) {
       if (digitSegments[n][i]) {
-        leds[segments[digit][i] - 1] = CRGB::Red;
+        leds[segments[digit][i] - 1] = CRGB::Blue;
       } else {
         leds[segments[digit][i] - 1] = CRGB::Black;
       }
     }
   }
 
-  for (int i = 0; i < 6; i++) {
-    leds[decimalPoints[i] - 1] = CRGB::Black; // turn on decimal point
-  }
-
-  FastLED.show();
-  delay(1000);
 }
