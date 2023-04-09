@@ -43,7 +43,7 @@ void loop(){
 }
 
 void displayNumber() {
-  String numStr = "0000309"; // the number to display as a string
+  String numStr = "0001000"; // the number to display as a string
   int num = atoi(numStr.c_str()); // convert the string to an integer
 
   for (int i = 0; i < NUM_LEDS; i++) {
@@ -51,32 +51,27 @@ void displayNumber() {
   }
 
   int digitCount = 0;
-  int leadingZeroCount = 0;
-  while (numStr[leadingZeroCount] == '0' && leadingZeroCount < numStr.length() - 1) {
-    leadingZeroCount++;
-  }
 
-  for (int i = 0; i < leadingZeroCount; i++) {
-    for (int j = 0; j < 7; j++) {
-      if (digitSegments[0][j]) {
-        leds[segments[i][j] - 1] = CRGB::Blue;
-      }
-    }
-  }
-
+  // Loop through the digits of the integer and display them
   while (num > 0 && digitCount < 7) {
     int digit = num % 10;
     for (int i = 0; i < 7; i++) {
       if (digitSegments[digit][i]) {
-        leds[segments[digitCount + leadingZeroCount][i] - 1] = CRGB::Blue;
+        leds[segments[digitCount][i] - 1] = CRGB::Blue;
       }
     }
     digitCount++;
     num /= 10;
   }
+
+  // Loop through any leading zeros and display them
+  int leadingZeroCount = 0;
+  while (numStr[leadingZeroCount] == '0' && leadingZeroCount < numStr.length() - 1) {
+    for (int j = 0; j < 7; j++) {
+      if (digitSegments[0][j]) {
+        leds[segments[digitCount + leadingZeroCount][j] - 1] = CRGB::Blue;
+      }
+    }
+    leadingZeroCount++;
+  }
 }
-
-
-
-
-
