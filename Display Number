@@ -48,56 +48,6 @@ void displayd(){
   }
 }
 
-#include <FastLED.h>
-
-#define LED_PIN D2
-#define NUM_LEDS 67
-
-CRGB leds[NUM_LEDS];
-
-// Define the LED digit segment positions
-int segments[7][7] = {
-  {1, 27, 54, 55, 53, 26, 28},   // LED’s for ones place
-  {3, 25, 52, 57, 51, 24, 30},   // LED’s for tens place
-  {5, 23, 50, 59, 49, 22, 32},   // LED’s for hundreds place
-  {7, 21, 48, 61, 47, 20, 34},   // LED’s for thousands place
-  {9, 19, 46, 63, 45, 18, 36},   // LED’s for ten thousands place
-  {11, 17, 44, 65, 43, 16, 38},  // LED’s for hundred thousands place
-  {13, 15, 42, 67, 41, 14, 40}   // LED’s for millions place
-};
-
-// Define the LED positions for the decimal points
-int decimalPoints[6] = {56, 58, 60, 62, 64, 66};
-
-int digitSegments[10][7] = {
-  {1, 1, 1, 1, 1, 1, 0},   // 0
-  {0, 1, 1, 0, 0, 0, 0},   // 1
-  {1, 1, 0, 1, 1, 0, 1},   // 2
-  {1, 1, 1, 1, 0, 0, 1},   // 3
-  {0, 1, 1, 0, 0, 1, 1},   // 4
-  {1, 0, 1, 1, 0, 1, 1},   // 5
-  {1, 0, 1, 1, 1, 1, 1},   // 6
-  {1, 1, 1, 0, 0, 0, 0},   // 7
-  {1, 1, 1, 1, 1, 1, 1},   // 8
-  {1, 1, 1, 1, 0, 1, 1}    // 9
-};
-
-void setup() {
-  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
-}
-
-void loop(){
-  displayNumber();
-  FastLED.show();
-  delay(1000);
-}
-
-void displayd(){ 
-  for (int i = 0; i < 6; i++) {
-    leds[decimalPoints[i] - 1] = CRGB::Black; // turn on decimal point
-  }
-}
-
 void displayNumber() {
   int num = 8675309; // the number to display
 
