@@ -5,6 +5,11 @@
 
 CRGB leds[NUM_LEDS];
 
+CRGB ledColor = CRGB::Red;
+
+String numStr = "0000001"; // the number to display as a string
+
+
 // Define the LED digit segment positions
 int segments[8][7] = {
   {1, 27, 54, 55, 53, 26, 28},   // LED’s for ones place
@@ -37,6 +42,7 @@ void setup() {
 }
 
 void loop(){
+  numStr = "1.234567";
   displayNumber();
   FastLED.show();
   delay(1000);
@@ -44,7 +50,6 @@ void loop(){
 
 
 void displayNumber() {
-  String numStr = "0000001"; // the number to display as a string
   int num = atoi(numStr.c_str()); // convert the integer part of the string to an integer
 
   int decimalPosition = -1; // initialize decimal position as -1, indicating there is no decimal point
@@ -76,7 +81,7 @@ void displayNumber() {
     int digit = num % 10;
     for (int i = 0; i < 7; i++) {
       if (digitSegments[digit][i]) {
-        leds[segments[digitCount][i] - 1] = CRGB::Blue;
+        leds[segments[digitCount][i] - 1] = ledColor;
       }
     }
     digitCount++;
@@ -88,7 +93,7 @@ void displayNumber() {
   while (numStr[leadingZeroCount] == '0' && leadingZeroCount < numStr.length() - 1) {
     for (int j = 0; j < 7; j++) {
       if (digitSegments[0][j]) {
-        leds[segments[digitCount + leadingZeroCount][j] - 1] = CRGB::Blue;
+        leds[segments[digitCount + leadingZeroCount][j] - 1] = ledColor;
       }
     }
     leadingZeroCount++;
@@ -98,12 +103,7 @@ void displayNumber() {
   if (decimalPosition >= 0) {
     Serial.println(decimalPosition);
     Serial.println(segments[7][decimalPosition -1] - 1);   
-    leds[segments[7][decimalPosition -1] - 1] = CRGB::Blue;
+    leds[segments[7][decimalPosition -1] - 1] = ledColor;
   }
 }
-
-
-
-
-
 
