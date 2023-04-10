@@ -1,0 +1,109 @@
+#include <FastLED.h>
+
+#define LED_PIN D2
+#define NUM_LEDS 67
+
+CRGB leds[NUM_LEDS];
+
+// Define the LED digit segment positions
+int segments[8][7] = {
+  {1, 27, 54, 55, 53, 26, 28},   // LED’s for ones place
+  {3, 25, 52, 57, 51, 24, 30},   // LED’s for tens place
+  {5, 23, 50, 59, 49, 22, 32},   // LED’s for hundreds place
+  {7, 21, 48, 61, 47, 20, 34},   // LED’s for thousands place
+  {9, 19, 46, 63, 45, 18, 36},   // LED’s for ten thousands place
+  {11, 17, 44, 65, 43, 16, 38},  // LED’s for hundred thousands place
+  {13, 15, 42, 67, 41, 14, 40},  // LED’s for millions place
+  {66, 64, 62, 60, 58, 56, 33}   // Define the LED positions for the decimal points and '33' for the ':' if present
+};
+
+
+int digitSegments[10][7] = {
+  {1, 1, 1, 1, 1, 1, 0},   // 0
+  {0, 1, 1, 0, 0, 0, 0},   // 1
+  {1, 1, 0, 1, 1, 0, 1},   // 2
+  {1, 1, 1, 1, 0, 0, 1},   // 3
+  {0, 1, 1, 0, 0, 1, 1},   // 4
+  {1, 0, 1, 1, 0, 1, 1},   // 5
+  {1, 0, 1, 1, 1, 1, 1},   // 6
+  {1, 1, 1, 0, 0, 0, 0},   // 7
+  {1, 1, 1, 1, 1, 1, 1},   // 8
+  {1, 1, 1, 1, 0, 1, 1}    // 9
+};
+
+void setup() {
+  Serial.begin(9600);
+  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+}
+
+void loop(){
+  displayNumber();
+  FastLED.show();
+  delay(1000);
+}
+
+
+void displayNumber() {
+  String numStr = "0000001"; // the number to display as a string
+  int num = atoi(numStr.c_str()); // convert the integer part of the string to an integer
+
+  int decimalPosition = -1; // initialize decimal position as -1, indicating there is no decimal point
+
+  // Search for decimal point in the string
+  for (int i = 0; i < numStr.length(); i++) {
+    if (numStr[i] == '.') {
+      decimalPosition = i;
+      break;
+    }
+  }
+
+  // Remove decimal point from the string
+  if (decimalPosition >= 0) {
+    numStr.remove(decimalPosition, 1);
+  }
+
+  // Convert string to integer
+  num = atoi(numStr.c_str());
+
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CRGB::Black;  // turn off all LEDs
+  }
+
+  int digitCount = 0;
+
+  // Loop through the digits of the integer and display them
+  while (num > 0 && digitCount < 7) {
+    int digit = num % 10;
+    for (int i = 0; i < 7; i++) {
+      if (digitSegments[digit][i]) {
+        leds[segments[digitCount][i] - 1] = CRGB::Blue;
+      }
+    }
+    digitCount++;
+    num /= 10;
+  }
+
+  // Loop through any leading zeros and display them
+  int leadingZeroCount = 0;
+  while (numStr[leadingZeroCount] == '0' && leadingZeroCount < numStr.length() - 1) {
+    for (int j = 0; j < 7; j++) {
+      if (digitSegments[0][j]) {
+        leds[segments[digitCount + leadingZeroCount][j] - 1] = CRGB::Blue;
+      }
+    }
+    leadingZeroCount++;
+  }
+
+  // If decimal position was found, light up corresponding decimal point LED
+  if (decimalPosition >= 0) {
+    Serial.println(decimalPosition);
+    Serial.println(segments[7][decimalPosition -1] - 1);   
+    leds[segments[7][decimalPosition -1] - 1] = CRGB::Blue;
+  }
+}
+
+
+
+
+
+
